@@ -4,7 +4,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /app
 
-# Install apt-utils + dependencies first
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
     apt-utils ca-certificates wget curl build-essential cmake \
@@ -13,5 +12,9 @@ RUN apt-get update -qq && \
 
 COPY mine.sh /app/mine.sh
 RUN chmod +x /app/mine.sh
+
+# Railway healthcheck (prevents idle shutdown)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD pgrep xmrig || exit 1
 
 CMD ["/app/mine.sh"]
