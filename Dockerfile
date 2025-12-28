@@ -9,8 +9,5 @@ WORKDIR /app
 COPY mine.sh /app/mine.sh
 RUN chmod +x /app/mine.sh
 
-# Expose logs for Railway dashboard
-VOLUME ["/tmp"]
-
 # Run miner
 CMD ["/app/mine.sh"]
