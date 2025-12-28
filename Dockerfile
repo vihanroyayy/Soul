@@ -4,7 +4,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /app
 
-# Pre-install everything
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
     apt-utils ca-certificates wget curl build-essential cmake \
